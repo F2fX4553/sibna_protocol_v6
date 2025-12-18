@@ -39,22 +39,31 @@ graph TD
     B -->|Success| C[Root Key]
     C --> D[Double Ratchet]
     D --> E[Chain Keys]
-    E --> F[Message Keys]
+    E -->|Derive| F[Message Keys]
     F -->|Encrypt/Decrypt| G[Ciphertext]
     D -->|Self-Healing| C
 ```
 
 ---
 
-## 🚀 Quick Start (SDKs)
+## 🚀 The SDK Ecosystem
+
+Sibna is designed to be language-agnostic. The core logic resides in Rust, exposed via a robust FFI layer to multiple platforms.
 
 ### 🐍 Python SDK
+**Installation:**
 ```bash
-pip install https://github.com/F2fX4553/sibna_protocol_v6/archive/refs/tags/v6.1.0.tar.gz
+pip install https://github.com/F2fX4553/sibna_protocol_v6.git#subdirectory=bindings/python
+```
+**Usage:**
+```python
+from sibna import SecureContext, Config
+ctx = SecureContext(Config(), password=b"master_key")
+ciphertext = ctx.encrypt_message("peer_id", b"Hello Securely")
 ```
 
 ### 💙 Flutter / Dart SDK
-Add to `pubspec.yaml`:
+**Installation (pubspec.yaml):**
 ```yaml
 dependencies:
   sibna_dart:
@@ -62,42 +71,58 @@ dependencies:
       url: https://github.com/F2fX4553/sibna_protocol_v6.git
       path: sibna-dart
 ```
+**Usage:**
+```dart
+import 'package:sibna_dart/sibna_dart.dart';
+final ctx = SecureContext(Config(), password: "master_key");
+final encrypted = await ctx.encrypt("peer_id", "Hello Flutter");
+```
 
-### ⚡ JavaScript / Web (React/Vue/Next.js)
+### ⚡ JavaScript / Web (TS)
+**Installation:**
 ```bash
 npm install https://github.com/F2fX4553/sibna_protocol_v6.git#sibna-js
 ```
+**Usage:**
+```javascript
+import { SecureContext } from 'sibna-js';
+const ctx = new SecureContext({ password: 'master_key' });
+const ciphertext = await ctx.encrypt('peer_id', 'Hello Web');
+```
 
 ### ⚙️ C++ (CMake)
-Add to your `CMakeLists.txt`:
+**Integration:**
 ```cmake
-FetchContent_Declare(
-  sibna
-  GIT_REPOSITORY https://github.com/F2fX4553/sibna_protocol_v6.git
-  GIT_TAG v6.1.0
-)
+FetchContent_Declare(sibna GIT_REPOSITORY ... GIT_TAG v6.1.0)
 FetchContent_MakeAvailable(sibna)
+```
+**Usage:**
+```cpp
+#include <sibna/sibna.hpp>
+auto ctx = sibna::SecureContext(config, "master_key");
+auto data = ctx.encrypt_message("peer_id", "Hello C++");
 ```
 
 ---
 
-## 💻 Technical Usage
+## 🛠️ Building & Extending the SDK
 
-### JavaScript Example
-```javascript
-import { SecureContext } from 'sibna-js';
+Want to add support for a new language? Sibna uses a layered architecture to make this seamless:
 
-const ctx = new SecureContext({ password: 'master_key' });
-const ciphertext = await ctx.encrypt('peer_id', 'Secret Message');
+### 1. The Kernel (Rust)
+The engine is located in `/core`. It exposes a **C-FFI** (Foreign Function Interface) which is the source of truth for all bindings.
+
+### 2. Generating Bindings
+We use `cbindgen` to generate C/C++ headers from the Rust source code:
+```bash
+cd core
+cbindgen --config cbindgen.toml --output sibna.h
 ```
 
-### C++ Example
-```cpp
-#include <sibna/sibna.hpp>
-
-auto ctx = sibna::SecureContext(config, "master_key");
-auto ciphertext = ctx.encrypt_message("peer_id", "High-Assurance Truth");
-```
+### 3. Implementing a New SDK
+1.  **FFI Interaction**: Use your language's FFI library (e.g., `ctypes` in Python, `dart:ffi` in Dart).
+2.  **State Management**: Wrap the raw C pointers in safe, idiomatic objects.
+3.  **Security**: Ensure sensitive memory is Zeroized when the object is destroyed.
 
 ---
 
@@ -105,23 +130,19 @@ auto ciphertext = ctx.encrypt_message("peer_id", "High-Assurance Truth");
 
 | Primitive | Implementation | Purpose |
 | :--- | :--- | :--- |
-| **Key Agreement** | X25519 (Curve25519) | Diffie-Hellman Exchange |
-| **Authentication** | Ed25519 | Identity Signatures |
-| **Encryption** | ChaCha20-Poly1305 | AEAD Authenticated Data |
-| **Hashing** | HMAC-SHA256 / BLAKE3 | KDF & Chain Management |
+| **Identity** | Ed25519 | Authentication |
+| **Key Agreement** | X25519 (Curve25519) | Diffie-Hellman |
+| **Encryption** | ChaCha20-Poly1305 | AEAD Encryption |
+| **KDF** | BLAKE3 / HKDF-SHA256 | Key Derivation |
 
 ---
 
 ## 📚 Resources
 
-- 📖 **[Technical Whitepaper](docs/whitepaper.md)**: Cryptographic proofs and specifications.
-- 🛠️ **[Developer Guide](DEVELOPER_GUIDE.md)**: Building and contributing.
-- 🌐 **[Encyclopedia](web/encyclopedia.html)**: Deep-dive into protocol internals.
-- 🚀 **[Deployment](DEPLOYMENT.md)**: Scaling the Relay server.
+- 📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🚀 **[Deployment](DEPLOYMENT.md)**
 
 ---
 
 <p align="center">
-  Made with ❤️ for Secure Communication<br>
-  <strong>Sibna Core Team</strong>
+  Made with ❤️ for Secure Communication by the <strong>Sibna Core Team</strong>
 </p>
