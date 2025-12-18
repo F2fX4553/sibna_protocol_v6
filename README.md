@@ -1,9 +1,5 @@
-# Sibna Protocol (v2.1.0)
-## High-Assurance End-to-End Encryption Kernel
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Language](https://img.shields.io/badge/Language-Rust-orange.svg)](https://www.rust-lang.org/)
-[![Status](https://img.shields.io/badge/Status-Beta-yellow.svg)]()
+# Sibna Protocol (v6.1.0)
+## Secure E2EE Protocol v6 — High-assurance messaging kernel
 
 Sibna is a professional-grade, modular E2EE protocol built in Rust. It implements a self-healing cryptographic state machine designed for asynchronous, zero-trust environments.
 
