@@ -49,11 +49,35 @@ graph TD
 
 Sibna is built on a **Double Ratchet** core, ensuring that every message increases the security entropy of the session.
 
-- **Self-Healing**: The session recovers automatically from temporary device compromise.
+- **Self-Healing**: The session recovers automatically from temporary device compromise (Post-Compromise Security).
 - **Persistence & OpSec**:
   - **Encrypted Storage**: Local state (keys, sessions, indices) is persisted in a password-derived encryption layer.
   - **Memory Safety**: Sensitive materials are cleared immediately after use via the `zeroize` crate.
 - **Forward Secrecy**: Historical messages cannot be decrypted even if current long-term keys are stolen.
+- **Zero-knowledge Relay**: The relay server manages opaque blobs and never sees unencrypted content.
+
+---
+
+## 🛠️ Developer Onboarding
+
+### 1. Build the Core Engine
+The core is written in Rust. You must build it first to generate the necessary libraries.
+```bash
+cd core
+cargo build --release
+```
+
+### 2. Verify Protocol Integrity (Testing)
+**Rust Unit Tests:**
+```bash
+cargo test
+```
+
+**Full Integration Tests:** (Requires Python 3.12+)
+```bash
+cd tests
+python integration_test_full.py
+```
 
 ---
 
@@ -61,34 +85,25 @@ Sibna is built on a **Double Ratchet** core, ensuring that every message increas
 
 Sibna follows a **Shared Core Architecture**. Below are professional-grade implementation examples for production environments.
 
-### � Python SDK: Enterprise Integration
-Professional usage involving persistent state and asynchronous message handling.
+### 🐍 Python SDK: Enterprise Integration
 ```python
-from sibna import SecureContext, Config, StorageAdapter
-
-# 1. Initialize with persistent encrypted storage
+from sibna import SecureContext, Config
+# Initialize with persistent encrypted storage
 config = Config(storage_path="./vault", db_encryption=True)
-ctx = SecureContext(config, password=b"argon2_derived_secret")
+ctx = SecureContext(config, password=b"master_secret")
 
-# 2. X3DH Pre-key management
-bundle = ctx.generate_prekey_bundle()
-# upload_to_server(bundle)
-
-# 3. Asymmetric encryption with automatic ratchet refresh
+# Asymmetric encryption with automatic ratchet refresh
 session = ctx.get_or_create_session(peer_id="alice_99")
-ciphertext = session.encrypt(b"Confidential Engineering Report")
+ciphertext = session.encrypt(b"Confidential Report")
 ```
 
 ### 💙 Flutter SDK: Mobile-First Security
-Using `sibna_dart` with secure background sync and stream-based decryption.
 ```dart
 import 'package:sibna_dart/sibna_dart.dart';
 
-Future<void> initSecureMessenger() async {
-  final ctx = SecureContext(Config(), password: "user_biometric_key");
-  
-  // Handling incoming encrypted stream
-  messagingSource.stream.listen((payload) async {
+Future<void> initMessenger() async {
+  final ctx = SecureContext(Config(), password: "biometric_key");
+  messagingStream.listen((payload) async {
     final plaintext = await ctx.decrypt(payload.senderId, payload.data);
     updateUI(plaintext);
   });
@@ -96,17 +111,25 @@ Future<void> initSecureMessenger() async {
 ```
 
 ### ⚡ JavaScript SDK: Web-Worker Isolation
-Ideal for privacy-focused web apps using worker threads to isolate crypto logic.
 ```javascript
 import { SibnaKernel } from 'sibna-js';
-
-// Instantiate within a Web Worker for maximum OpSec
 const kernel = new SibnaKernel();
 await kernel.initialize({ engine: 'wasm', masterKey: '...' });
-
 const blob = await kernel.processIncomingMessage(senderId, encryptedBlob);
-console.log('Decrypted in-worker:', blob.toString());
 ```
+
+---
+
+## 📂 Repository Layout
+
+| Directory | Content |
+| :--- | :--- |
+| **`/core`** | Rust-native implementation of the protocol engine. |
+| **`/bindings`** | Optimized wrappers for Python and C++. |
+| **`/sibna-dart`** | Flutter/Dart SDK for mobile development. |
+| **`/sibna-js`** | JavaScript/TypeScript SDK for web apps. |
+| **`/docs`** | Whitepaper, API Reference, and Deployment guides. |
+| **`/server`** | Reference FastAPI Relay and Pre-Key Server. |
 
 ---
 
@@ -116,16 +139,8 @@ Developers can extend Sibna to any language. The "One Core, Many Faces" model en
 
 1.  **Shared Kernel (Rust)**: All logic is in `/core`.
 2.  **FFI Bridge**: We export a standard C89-compatible ABI.
-    ```bash
-    cd core && cargo build --target x86_64-unknown-linux-gnu
-    ```
-3.  **Generating Headers**: Create `sibna.h` to see the available C entry points.
-    ```bash
-    cbindgen --config cbindgen.toml --output sibna.h
-    ```
-4.  **Binding Strategy**:
-    - **Wrappers**: Map C pointers to Object-Oriented classes (e.g., `PyObject` for Python, `JSObject` for Node).
-    - **Memory**: Use your language's Garbage Collector hooks or destructors to call `sibna_free()` in Rust, preventing memory leaks of sensitive keys.
+3.  **Generating Headers**: `cbindgen --config core/cbindgen.toml --output core/sibna.h`
+4.  **Binding Strategy**: Map C pointers to Object-Oriented classes and use destructors to call `sibna_free()` in Rust to prevent memory leaks.
 
 ---
 
@@ -140,9 +155,10 @@ Developers can extend Sibna to any language. The "One Core, Many Faces" model en
 
 ---
 
-## 📚 Resources
+## 📚 Documentation & Resources
 
-📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
+- 📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
+- 🚀 **[Deployment](DEPLOYMENT.md)** | ⚠️ **[Troubleshooting](docs/TROUBLESHOOTING.md)**
 
 ---
 
