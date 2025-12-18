@@ -29,7 +29,7 @@ On Windows, you may encounter `os error 32` (File Locking) due to Antivirus or a
 
 ```powershell
 # Clone and build the core
-git clone https://github.com/sibna/protocol-v2.git
+git clone https://github.com/F2fX4553/sibna_protocol_v6.git
 cd protocol-v2/core
 cargo build --release
 
@@ -102,3 +102,4 @@ Licensed under **Apache-2.0** or **MIT**.
 
 ---
 **Made with ❤️ for Secure Communication**
+
