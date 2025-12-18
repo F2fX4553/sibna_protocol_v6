@@ -18,7 +18,7 @@
 
 ## 💎 The Engineering Behind Absolute Privacy
 
-Sibna is a reference messaging kernel written in memory-safe Rust. It handles the complex mathematics of **X3DH** (Extended Triple Diffie-Hellman) and **Double Ratchet**, providing a production-ready core for secure messaging applications.
+Sibna is a reference messaging kernel written in memory-safe Rust. It handles the complex mathematics of **X3DH** and **Double Ratchet**, providing a production-ready core for secure messaging applications.
 
 ### Key Pillars
 - 🛡️ **Post-Compromise Security**: Self-healing cryptographic state machine.
@@ -45,78 +45,113 @@ graph TD
 
 ---
 
-## 🛡️ Security Architecture
+## 🚀 Quick Start: Getting Started
 
-Sibna is built on a **Double Ratchet** core, ensuring that every message increases the security entropy of the session.
+Follow these steps to move from a fresh clone to a functional secure session.
 
-- **Self-Healing**: The session recovers automatically from temporary device compromise (Post-Compromise Security).
-- **Persistence & OpSec**:
-  - **Encrypted Storage**: Local state (keys, sessions, indices) is persisted in a password-derived encryption layer.
-  - **Memory Safety**: Sensitive materials are cleared immediately after use via the `zeroize` crate.
-- **Forward Secrecy**: Historical messages cannot be decrypted even if current long-term keys are stolen.
-- **Zero-knowledge Relay**: The relay server manages opaque blobs and never sees unencrypted content.
-
----
-
-## 🛠️ Developer Onboarding
-
-### 1. Build the Core Engine
-The core is written in Rust. You must build it first to generate the necessary libraries.
+### 1. Build & Verify (Protocol Kernel)
+First, ensure the Rust-native core is built correctly.
 ```bash
+# Navigate to the core
 cd core
 cargo build --release
+
+# Verify the binary is functional
+./target/release/sibna_kernel --help
 ```
+> [!NOTE]
+> If the help menu appears, the Sibna Kernel is ready for service.
 
 ### 2. Verify Protocol Integrity (Testing)
-**Rust Unit Tests:**
-```bash
-cargo test
-```
+Run the full suite to ensure all cryptographic primitives are operating within specification.
 
-**Full Integration Tests:** (Requires Python 3.12+)
+**Rust Unit Tests (Internal State):**
+```bash
+cargo test --verbose
+```
+**Expected Result:** `test result: ok. 0 failed; ...`
+
+**Python Integration Tests (End-to-End):**
 ```bash
 cd tests
 python integration_test_full.py
 ```
+**Expected Result:** `All tests passed! (Successfully performed X3DH & Double Ratchet)`
 
 ---
 
-## 🚀 The SDK Ecosystem: Advanced Usage
+## 📦 The SDK Ecosystem: Practical Usage
 
-Sibna follows a **Shared Core Architecture**. Below are professional-grade implementation examples for production environments.
+Sibna provides a "Single Source of Truth." Use these examples to implement secure messaging in your application.
 
-### 🐍 Python SDK: Enterprise Integration
+### 🐍 Python SDK
+**Installation & Usage:**
+```bash
+pip install ./bindings/python
+```
 ```python
 from sibna import SecureContext, Config
-# Initialize with persistent encrypted storage
-config = Config(storage_path="./vault", db_encryption=True)
-ctx = SecureContext(config, password=b"master_secret")
 
-# Asymmetric encryption with automatic ratchet refresh
+# Initialize
+ctx = SecureContext(Config(), password=b"master_secret")
+
+# Create Session & Loop
 session = ctx.get_or_create_session(peer_id="alice_99")
-ciphertext = session.encrypt(b"Confidential Report")
+ciphertext = session.encrypt(b"Hello World")
+plaintext = session.decrypt(session.peer_id, ciphertext)
+
+print(f"Decrypted: {plaintext.decode()}") # Expected: Hello World
 ```
 
-### 💙 Flutter SDK: Mobile-First Security
+### ⚡ JavaScript SDK (Web)
+**Installation & Usage:**
+```bash
+npm install ./sibna-js
+```
+```javascript
+import { SibnaKernel } from 'sibna-js';
+
+const kernel = new SibnaKernel();
+await kernel.initialize({ masterKey: '...' });
+
+const encrypted = await kernel.encryptMessage('alice_99', 'Hello Web');
+const decrypted = await kernel.decryptMessage('alice_99', encrypted);
+
+console.log(decrypted); // Expected: Hello Web
+```
+
+### 💙 Flutter / Dart SDK
+**Add to `pubspec.yaml`:**
+```yaml
+dependencies:
+  sibna_dart:
+    git: { url: "...", path: "sibna-dart" }
+```
 ```dart
 import 'package:sibna_dart/sibna_dart.dart';
 
-Future<void> initMessenger() async {
-  final ctx = SecureContext(Config(), password: "biometric_key");
-  messagingStream.listen((payload) async {
-    final plaintext = await ctx.decrypt(payload.senderId, payload.data);
-    updateUI(plaintext);
-  });
-}
+final ctx = SecureContext(Config(), password: "...");
+final enc = await ctx.encrypt("peer_id", "Hello Flutter");
+final dec = await ctx.decrypt("peer_id", enc);
 ```
 
-### ⚡ JavaScript SDK: Web-Worker Isolation
-```javascript
-import { SibnaKernel } from 'sibna-js';
-const kernel = new SibnaKernel();
-await kernel.initialize({ engine: 'wasm', masterKey: '...' });
-const blob = await kernel.processIncomingMessage(senderId, encryptedBlob);
+---
+
+## 🏗️ SDK Engineering: Building New Bindings
+
+To add a new language, follow this standardized FFI (Foreign Function Interface) workflow:
+
+### Step 1: Export C-Headers
+Generate the bridge from the Rust source to a C-compatible header.
+```bash
+cargo install cbindgen
+cbindgen --config core/cbindgen.toml --output core/sibna.h
 ```
+
+### Step 2: Implementation Mapping
+1.  **Load Library**: Use your language's FFI loader (e.g., `ctypes`, `dart:ffi`) to find the `.so` / `.dll` / `.dylib` generated in `/core/target/release/`.
+2.  **Pointer Wrapping**: Map the raw pointers from `sibna.h` to your language's classes.
+3.  **Memory Management**: **CRITICAL!** You must implement destructors (or finalizers) that call `sibna_free()` to zeroize and release sensitive key material.
 
 ---
 
@@ -128,19 +163,7 @@ const blob = await kernel.processIncomingMessage(senderId, encryptedBlob);
 | **`/bindings`** | Optimized wrappers for Python and C++. |
 | **`/sibna-dart`** | Flutter/Dart SDK for mobile development. |
 | **`/sibna-js`** | JavaScript/TypeScript SDK for web apps. |
-| **`/docs`** | Whitepaper, API Reference, and Deployment guides. |
 | **`/server`** | Reference FastAPI Relay and Pre-Key Server. |
-
----
-
-## 🏗️ SDK Engineering: Building New Bindings
-
-Developers can extend Sibna to any language. The "One Core, Many Faces" model ensures cryptographic parity.
-
-1.  **Shared Kernel (Rust)**: All logic is in `/core`.
-2.  **FFI Bridge**: We export a standard C89-compatible ABI.
-3.  **Generating Headers**: `cbindgen --config core/cbindgen.toml --output core/sibna.h`
-4.  **Binding Strategy**: Map C pointers to Object-Oriented classes and use destructors to call `sibna_free()` in Rust to prevent memory leaks.
 
 ---
 
@@ -148,17 +171,15 @@ Developers can extend Sibna to any language. The "One Core, Many Faces" model en
 
 | Primitive | Implementation | Purpose |
 | :--- | :--- | :--- |
-| **X3DH** | X25519 & Ed25519 | Mutual Authentication & Key Exchange |
-| **Ratchet** | HMAC-SHA256 | Symmetrical Key Evolution |
+| **Handshake** | X3DH (X25519 & Ed25519) | Authentication & Key Exchange |
+| **Ratchet** | Double Ratchet (HMAC-SHA256) | Post-Compromise Security |
 | **AEAD** | ChaCha20-Poly1305 | Authenticated Encryption |
-| **Storage** | AES-256-GCM (SIV) | Encrypted Local Persistence |
 
 ---
 
-## 📚 Documentation & Resources
+## 📚 Resources
 
-- 📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
-- 🚀 **[Deployment](DEPLOYMENT.md)** | ⚠️ **[Troubleshooting](docs/TROUBLESHOOTING.md)**
+📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
 
 ---
 
