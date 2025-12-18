@@ -18,7 +18,7 @@
 
 ## 💎 The Engineering Behind Absolute Privacy
 
-Sibna is a reference messaging kernel written in memory-safe Rust. It handles the complex mathematics of **X3DH** and **Double Ratchet**, providing a production-ready core for secure messaging applications.
+Sibna is a reference messaging kernel written in memory-safe Rust. It handles the complex mathematics of **X3DH** (Extended Triple Diffie-Hellman) and **Double Ratchet**, providing a production-ready core for secure messaging applications.
 
 ### Key Pillars
 - 🛡️ **Post-Compromise Security**: Self-healing cryptographic state machine.
@@ -49,67 +49,83 @@ graph TD
 
 Sibna is built on a **Double Ratchet** core, ensuring that every message increases the security entropy of the session.
 
-- **Self-Healing**: The session recovers automatically from temporary device compromise (Post-Compromise Security).
+- **Self-Healing**: The session recovers automatically from temporary device compromise.
 - **Persistence & OpSec**:
   - **Encrypted Storage**: Local state (keys, sessions, indices) is persisted in a password-derived encryption layer.
   - **Memory Safety**: Sensitive materials are cleared immediately after use via the `zeroize` crate.
 - **Forward Secrecy**: Historical messages cannot be decrypted even if current long-term keys are stolen.
-- **Zero-knowledge Relay**: The relay server manages opaque blobs and never sees unencrypted content.
 
 ---
 
-## 🛠️ Developer Onboarding
+## 🚀 The SDK Ecosystem: Advanced Usage
 
-### 1. Build the Core Engine
-The core is written in Rust. You must build it first to generate the necessary libraries.
-```bash
-cd core
-cargo build --release
+Sibna follows a **Shared Core Architecture**. Below are professional-grade implementation examples for production environments.
+
+### � Python SDK: Enterprise Integration
+Professional usage involving persistent state and asynchronous message handling.
+```python
+from sibna import SecureContext, Config, StorageAdapter
+
+# 1. Initialize with persistent encrypted storage
+config = Config(storage_path="./vault", db_encryption=True)
+ctx = SecureContext(config, password=b"argon2_derived_secret")
+
+# 2. X3DH Pre-key management
+bundle = ctx.generate_prekey_bundle()
+# upload_to_server(bundle)
+
+# 3. Asymmetric encryption with automatic ratchet refresh
+session = ctx.get_or_create_session(peer_id="alice_99")
+ciphertext = session.encrypt(b"Confidential Engineering Report")
 ```
 
-### 2. Verify Protocol Integrity (Testing)
-**Rust Unit Tests:**
-```bash
-cargo test
+### 💙 Flutter SDK: Mobile-First Security
+Using `sibna_dart` with secure background sync and stream-based decryption.
+```dart
+import 'package:sibna_dart/sibna_dart.dart';
+
+Future<void> initSecureMessenger() async {
+  final ctx = SecureContext(Config(), password: "user_biometric_key");
+  
+  // Handling incoming encrypted stream
+  messagingSource.stream.listen((payload) async {
+    final plaintext = await ctx.decrypt(payload.senderId, payload.data);
+    updateUI(plaintext);
+  });
+}
 ```
 
-**Full Integration Tests:** (Requires Python 3.12+)
-```bash
-cd tests
-python integration_test_full.py
+### ⚡ JavaScript SDK: Web-Worker Isolation
+Ideal for privacy-focused web apps using worker threads to isolate crypto logic.
+```javascript
+import { SibnaKernel } from 'sibna-js';
+
+// Instantiate within a Web Worker for maximum OpSec
+const kernel = new SibnaKernel();
+await kernel.initialize({ engine: 'wasm', masterKey: '...' });
+
+const blob = await kernel.processIncomingMessage(senderId, encryptedBlob);
+console.log('Decrypted in-worker:', blob.toString());
 ```
 
 ---
 
-## 🚀 The SDK Ecosystem
+## 🏗️ SDK Engineering: Building New Bindings
 
-Sibna follows a **Shared Core Architecture**. The engine is built once in Rust and exposed via a robust FFI layer.
+Developers can extend Sibna to any language. The "One Core, Many Faces" model ensures cryptographic parity.
 
-- **Python SDK**: `pip install bindings/python`
-- **Flutter / Dart SDK**: Add `sibna_dart` via Git in `pubspec.yaml`.
-- **JavaScript SDK**: `npm install sibna-js`
-- **C++ SDK**: Integrate using CMake `FetchContent`.
-
----
-
-## 📂 Repository Layout
-
-| Directory | Content |
-| :--- | :--- |
-| **`/core`** | Rust-native implementation of the protocol engine. |
-| **`/bindings`** | Optimized wrappers for Python and C++. |
-| **`/sibna-dart`** | Flutter/Dart SDK for mobile development. |
-| **`/sibna-js`** | JavaScript/TypeScript SDK for web apps. |
-| **`/docs`** | Whitepaper, API Reference, and Deployment guides. |
-| **`/server`** | Reference FastAPI Relay and Pre-Key Server. |
-
----
-
-## 🏗️ SDK Engineering: Adding New Languages
-
-1.  **Core Kernel**: All cryptographic logic lives in `/core`.
-2.  **C-Header Generation**: `cbindgen --config core/cbindgen.toml --output core/sibna.h`
-3.  **Language Binding**: Create a wrapper that calls the functions in `sibna.h` via FFI.
+1.  **Shared Kernel (Rust)**: All logic is in `/core`.
+2.  **FFI Bridge**: We export a standard C89-compatible ABI.
+    ```bash
+    cd core && cargo build --target x86_64-unknown-linux-gnu
+    ```
+3.  **Generating Headers**: Create `sibna.h` to see the available C entry points.
+    ```bash
+    cbindgen --config cbindgen.toml --output sibna.h
+    ```
+4.  **Binding Strategy**:
+    - **Wrappers**: Map C pointers to Object-Oriented classes (e.g., `PyObject` for Python, `JSObject` for Node).
+    - **Memory**: Use your language's Garbage Collector hooks or destructors to call `sibna_free()` in Rust, preventing memory leaks of sensitive keys.
 
 ---
 
@@ -117,20 +133,16 @@ Sibna follows a **Shared Core Architecture**. The engine is built once in Rust a
 
 | Primitive | Implementation | Purpose |
 | :--- | :--- | :--- |
-| **Identity** | Ed25519 | Authentication |
-| **Key Agreement** | X25519 (Curve25519) | Diffie-Hellman |
-| **Encryption** | ChaCha20-Poly1305 | AEAD Encryption |
-| **KDF** | BLAKE3 / HKDF-SHA256 | Key Derivation |
+| **X3DH** | X25519 & Ed25519 | Mutual Authentication & Key Exchange |
+| **Ratchet** | HMAC-SHA256 | Symmetrical Key Evolution |
+| **AEAD** | ChaCha20-Poly1305 | Authenticated Encryption |
+| **Storage** | AES-256-GCM (SIV) | Encrypted Local Persistence |
 
 ---
 
-## 📚 Documentation & Resources
+## 📚 Resources
 
-- 📖 **[Whitepaper](docs/whitepaper.md)**: Cryptographic proofs and specs.
-- 🌐 **[Encyclopedia](web/encyclopedia.html)**: Deep-dive into protocol internals.
-- 🛠️ **[Developer Guide](DEVELOPER_GUIDE.md)**: Building and contributing.
-- 🚀 **[Deployment](DEPLOYMENT.md)**: Scaling the Relay server.
-- ⚠️ **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common build and runtime fixes.
+📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
 
 ---
 
