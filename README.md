@@ -17,14 +17,14 @@
 
 ---
 
-## � The Engineering Behind Absolute Privacy
+## 💎 The Engineering Behind Absolute Privacy
 
 Sibna is a reference messaging kernel written in memory-safe Rust. It handles the complex mathematics of **X3DH** and **Double Ratchet**, providing a production-ready core for secure messaging applications.
 
 ### Key Pillars
 - 🛡️ **Post-Compromise Security**: Self-healing cryptographic state machine.
 - ⚡ **High Performance**: Rust-native core with zero-cost abstractions.
-- 📦 **Multi-Language**: Optimized bindings for Python, C++, and Dart.
+- 📦 **Multi-Language**: Optimized bindings for Python, C++, and Flutter/Dart.
 - 🔐 **Zero-Knowledge**: Relay servers never touch plaintext or metadata.
 
 ---
@@ -48,28 +48,37 @@ graph TD
 
 ## 🚀 Quick Start
 
-### Python Installation (SDK)
+### 🐍 Python SDK
 
 ```bash
-# Clone the repository
+# Install from source
 git clone https://github.com/F2fX4553/sibna_protocol_v6.git
-cd sibna_protocol_v6
-
-# Install the Python bindings
-cd bindings/python
+cd sibna_protocol_v6/bindings/python
 pip install .
 ```
 
-### Basic Usage
+### 💙 Flutter / Dart SDK
 
-```python
-from sibna import SecureContext, Config
+Add the dependency to your `pubspec.yaml`:
 
-# Initialize context
-ctx = SecureContext(Config(), password=b"master_key")
+```yaml
+dependencies:
+  sibna_dart:
+    git:
+      url: https://github.com/F2fX4553/sibna_protocol_v6.git
+      path: sibna-dart
+```
 
-# Encrypt a secret
-ciphertext = ctx.encrypt_message("peer_id", b"High-Assurance Truth")
+### Basic Usage (Dart)
+
+```dart
+import 'package:sibna_dart/sibna_dart.dart';
+
+// Initialize context
+final ctx = SecureContext(Config(), password: "master_key");
+
+// Encrypt a secret
+final ciphertext = await ctx.encryptMessage("peer_id", "High-Assurance Truth");
 ```
 
 ---
@@ -85,7 +94,7 @@ ciphertext = ctx.encrypt_message("peer_id", b"High-Assurance Truth")
 
 ---
 
-## � Resources
+## 📚 Resources
 
 - 📖 **[Technical Whitepaper](docs/whitepaper.md)**: Cryptographic proofs and specifications.
 - 🛠️ **[Developer Guide](DEVELOPER_GUIDE.md)**: Building and contributing.
@@ -98,4 +107,3 @@ ciphertext = ctx.encrypt_message("peer_id", b"High-Assurance Truth")
   Made with ❤️ for Secure Communication<br>
   <strong>Sibna Core Team</strong>
 </p>
-
