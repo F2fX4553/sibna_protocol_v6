@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "sibna"
+version = "2.1.0"
+description = "Sibna Protocol Bindings"
+authors = [{name = "Sibna Team"}]
+requires-python = ">=3.8"
+dependencies = []
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
