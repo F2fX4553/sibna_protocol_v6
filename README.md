@@ -23,14 +23,42 @@ Sibna is a reference messaging kernel written in memory-safe Rust. It handles th
 ### Key Pillars
 - 🛡️ **Post-Compromise Security**: Self-healing cryptographic state machine.
 - ⚡ **High Performance**: Rust-native core with zero-cost abstractions.
-- 📦 **Multi-Language**: Optimized bindings for Python, Flutter, C++, and Web.
+- 📦 **Multi-Language**: Optimized bindings for Python, Flutter, JavaScript, and C++.
 - 🔐 **Zero-Knowledge**: Relay servers never touch plaintext or metadata.
 
 ---
 
-## 🛠️ Developer Onboarding
+## 🏗️ Architecture Overview
 
-If you have just cloned the repository, follow these steps to verify your environment and ensure the kernel is fully functional.
+The Sibna Kernel manages the entire lifecycle of a secure session, from initial handshake to continuous re-keying.
+
+```mermaid
+graph TD
+    A["User Identity"] --> B{"X3DH Handshake"}
+    B -->|"Success"| C["Root Key"]
+    C --> D["Double Ratchet"]
+    D --> E["Chain Keys"]
+    E -->|"Derive"| F["Message Keys"]
+    F -->|"Encrypt/Decrypt"| G["Ciphertext"]
+    D -->|"Self-Healing"| C
+```
+
+---
+
+## 🛡️ Security Architecture
+
+Sibna is built on a **Double Ratchet** core, ensuring that every message increases the security entropy of the session.
+
+- **Self-Healing**: The session recovers automatically from temporary device compromise (Post-Compromise Security).
+- **Persistence & OpSec**:
+  - **Encrypted Storage**: Local state (keys, sessions, indices) is persisted in a password-derived encryption layer.
+  - **Memory Safety**: Sensitive materials are cleared immediately after use via the `zeroize` crate.
+- **Forward Secrecy**: Historical messages cannot be decrypted even if current long-term keys are stolen.
+- **Zero-knowledge Relay**: The relay server manages opaque blobs and never sees unencrypted content.
+
+---
+
+## 🛠️ Developer Onboarding
 
 ### 1. Build the Core Engine
 The core is written in Rust. You must build it first to generate the necessary libraries.
@@ -40,16 +68,12 @@ cargo build --release
 ```
 
 ### 2. Verify Protocol Integrity (Testing)
-Sibna includes a multi-layered test suite to ensure cryptographic correctness.
-
 **Rust Unit Tests:**
-Tests the internal state machine and individual primitives.
 ```bash
 cargo test
 ```
 
-**Full Integration Tests:**
-Tests the end-to-end session management using the Python SDK. (Requires Python 3.12+)
+**Full Integration Tests:** (Requires Python 3.12+)
 ```bash
 cd tests
 python integration_test_full.py
@@ -59,30 +83,33 @@ python integration_test_full.py
 
 ## 🚀 The SDK Ecosystem
 
-Sibna follows a **Shared Core Architecture**. The engine is built once in Rust and exposed to all other languages via a high-performance FFI (Foreign Function Interface) layer.
+Sibna follows a **Shared Core Architecture**. The engine is built once in Rust and exposed via a robust FFI layer.
 
-### Available SDKs
-- **Python**: `pip install bindings/python`
-- **Flutter/Dart**: Add `sibna-dart` via Git in `pubspec.yaml`.
-- **JavaScript/Web**: `npm install sibna-js`
-- **C++**: Integrate using CMake `FetchContent`.
+- **Python SDK**: `pip install bindings/python`
+- **Flutter / Dart SDK**: Add `sibna_dart` via Git in `pubspec.yaml`.
+- **JavaScript SDK**: `npm install sibna-js`
+- **C++ SDK**: Integrate using CMake `FetchContent`.
+
+---
+
+## 📂 Repository Layout
+
+| Directory | Content |
+| :--- | :--- |
+| **`/core`** | Rust-native implementation of the protocol engine. |
+| **`/bindings`** | Optimized wrappers for Python and C++. |
+| **`/sibna-dart`** | Flutter/Dart SDK for mobile development. |
+| **`/sibna-js`** | JavaScript/TypeScript SDK for web apps. |
+| **`/docs`** | Whitepaper, API Reference, and Deployment guides. |
+| **`/server`** | Reference FastAPI Relay and Pre-Key Server. |
 
 ---
 
 ## 🏗️ SDK Engineering: Adding New Languages
 
-Developers can create SDKs for any language that supports C-FFI. The process is standardized:
-
-### The "Source of Truth" Model
 1.  **Core Kernel**: All cryptographic logic lives in `/core`.
-2.  **C-Header Generation**: We use `cbindgen` to create the bridge between Rust and the world.
-    ```bash
-    cargo install cbindgen
-    cbindgen --config core/cbindgen.toml --output core/sibna.h
-    ```
-3.  **Language Binding**: Create a wrapper in your target language that calls the functions in `sibna.h`.
-    - **Per-Language**: You create a specific binding for each language (e.g., Python using PyO3, Dart using `dart:ffi`).
-    - **Uniformity**: Every SDK calls the same underlying Rust functions, ensuring identical security behavior across all platforms.
+2.  **C-Header Generation**: `cbindgen --config core/cbindgen.toml --output core/sibna.h`
+3.  **Language Binding**: Create a wrapper that calls the functions in `sibna.h` via FFI.
 
 ---
 
@@ -90,16 +117,20 @@ Developers can create SDKs for any language that supports C-FFI. The process is 
 
 | Primitive | Implementation | Purpose |
 | :--- | :--- | :--- |
+| **Identity** | Ed25519 | Authentication |
 | **Key Agreement** | X25519 (Curve25519) | Diffie-Hellman |
-| **Authentication** | Ed25519 | Identity Signatures |
 | **Encryption** | ChaCha20-Poly1305 | AEAD Encryption |
 | **KDF** | BLAKE3 / HKDF-SHA256 | Key Derivation |
 
 ---
 
-## 📚 Resources
+## 📚 Documentation & Resources
 
-📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
+- 📖 **[Whitepaper](docs/whitepaper.md)**: Cryptographic proofs and specs.
+- 🌐 **[Encyclopedia](web/encyclopedia.html)**: Deep-dive into protocol internals.
+- 🛠️ **[Developer Guide](DEVELOPER_GUIDE.md)**: Building and contributing.
+- 🚀 **[Deployment](DEPLOYMENT.md)**: Scaling the Relay server.
+- ⚠️ **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common build and runtime fixes.
 
 ---
 
