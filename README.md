@@ -24,7 +24,7 @@ Sibna is a reference messaging kernel written in memory-safe Rust. It handles th
 ### Key Pillars
 - 🛡️ **Post-Compromise Security**: Self-healing cryptographic state machine.
 - ⚡ **High Performance**: Rust-native core with zero-cost abstractions.
-- 📦 **Multi-Language**: Optimized bindings for Python, C++, and Flutter/Dart.
+- 📦 **Multi-Language**: Optimized bindings for Python, Flutter, C++, and Web.
 - 🔐 **Zero-Knowledge**: Relay servers never touch plaintext or metadata.
 
 ---
@@ -46,21 +46,15 @@ graph TD
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (SDKs)
 
 ### 🐍 Python SDK
-
 ```bash
-# Install from source
-git clone https://github.com/F2fX4553/sibna_protocol_v6.git
-cd sibna_protocol_v6/bindings/python
-pip install .
+pip install https://github.com/F2fX4553/sibna_protocol_v6/archive/refs/tags/v6.1.0.tar.gz
 ```
 
 ### 💙 Flutter / Dart SDK
-
-Add the dependency to your `pubspec.yaml`:
-
+Add to `pubspec.yaml`:
 ```yaml
 dependencies:
   sibna_dart:
@@ -69,16 +63,40 @@ dependencies:
       path: sibna-dart
 ```
 
-### Basic Usage (Dart)
+### ⚡ JavaScript / Web (React/Vue/Next.js)
+```bash
+npm install https://github.com/F2fX4553/sibna_protocol_v6.git#sibna-js
+```
 
-```dart
-import 'package:sibna_dart/sibna_dart.dart';
+### ⚙️ C++ (CMake)
+Add to your `CMakeLists.txt`:
+```cmake
+FetchContent_Declare(
+  sibna
+  GIT_REPOSITORY https://github.com/F2fX4553/sibna_protocol_v6.git
+  GIT_TAG v6.1.0
+)
+FetchContent_MakeAvailable(sibna)
+```
 
-// Initialize context
-final ctx = SecureContext(Config(), password: "master_key");
+---
 
-// Encrypt a secret
-final ciphertext = await ctx.encryptMessage("peer_id", "High-Assurance Truth");
+## 💻 Technical Usage
+
+### JavaScript Example
+```javascript
+import { SecureContext } from 'sibna-js';
+
+const ctx = new SecureContext({ password: 'master_key' });
+const ciphertext = await ctx.encrypt('peer_id', 'Secret Message');
+```
+
+### C++ Example
+```cpp
+#include <sibna/sibna.hpp>
+
+auto ctx = sibna::SecureContext(config, "master_key");
+auto ciphertext = ctx.encrypt_message("peer_id", "High-Assurance Truth");
 ```
 
 ---
