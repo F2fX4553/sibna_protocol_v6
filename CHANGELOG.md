@@ -2,7 +2,17 @@
 
 All notable changes to the Sibna Protocol will be documented in this file.
 
-## [2.1.0] - 2025-12-18
+## [6.1.0] - 2025-12-18
+
+### Changed
+- **Release Synchronization**: Synchronized all core and binding components to v6.1.0.
+- **Documentation Overhaul**: Updated repository descriptions for improved clarity and discoverability.
+
+## [6.0.0] - 2025-12-18
+
+### Added
+- **Major Architecture Shift**: Transitioned to v6 internal state management for enhanced protocol stability.
+- **Enterprise Readiness**: Finalized formal security model and threat analysis for high-assurance environments.
 
 ### Added
 - **Reference Elevation**: Defined Security Non-Goals and added a formal State Machine diagram to the Whitepaper.
