@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/sibna_hero_banner.png" alt="Sibna Hero Banner" width="100%">
+  <img src="https://i.pinimg.com/736x/d1/f7/d1/d1f7d161f707b20d96d16403c843d82a.jpg" alt="Sibna Hero Banner" width="100%">
 </p>
 
 <h1 align="center">Sibna Protocol (v6.1.0)</h1>
@@ -98,3 +98,4 @@ ciphertext = ctx.encrypt_message("peer_id", b"High-Assurance Truth")
   Made with ❤️ for Secure Communication<br>
   <strong>Sibna Core Team</strong>
 </p>
+
