@@ -12,7 +12,6 @@
   <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Language-Rust-orange.svg" alt="Language"></a>
   <img src="https://img.shields.io/badge/Status-Production--Ready-success.svg" alt="Status">
-  <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg" alt="PRs Welcome">
 </p>
 
 ---
@@ -29,100 +28,61 @@ Sibna is a reference messaging kernel written in memory-safe Rust. It handles th
 
 ---
 
-## 🏗️ Architecture Overview
+## 🛠️ Developer Onboarding
 
-The Sibna Kernel manages the entire lifecycle of a secure session, from initial handshake to continuous re-keying.
+If you have just cloned the repository, follow these steps to verify your environment and ensure the kernel is fully functional.
 
-```mermaid
-graph TD
-    A[User Identity] --> B{X3DH Handshake}
-    B -->|Success| C[Root Key]
-    C --> D[Double Ratchet]
-    D --> E[Chain Keys]
-    E -->|Derive| F[Message Keys]
-    F -->|Encrypt/Decrypt| G[Ciphertext]
-    D -->|Self-Healing| C
+### 1. Build the Core Engine
+The core is written in Rust. You must build it first to generate the necessary libraries.
+```bash
+cd core
+cargo build --release
+```
+
+### 2. Verify Protocol Integrity (Testing)
+Sibna includes a multi-layered test suite to ensure cryptographic correctness.
+
+**Rust Unit Tests:**
+Tests the internal state machine and individual primitives.
+```bash
+cargo test
+```
+
+**Full Integration Tests:**
+Tests the end-to-end session management using the Python SDK. (Requires Python 3.12+)
+```bash
+cd tests
+python integration_test_full.py
 ```
 
 ---
 
 ## 🚀 The SDK Ecosystem
 
-Sibna is designed to be language-agnostic. The core logic resides in Rust, exposed via a robust FFI layer to multiple platforms.
+Sibna follows a **Shared Core Architecture**. The engine is built once in Rust and exposed to all other languages via a high-performance FFI (Foreign Function Interface) layer.
 
-### 🐍 Python SDK
-**Installation:**
-```bash
-pip install https://github.com/F2fX4553/sibna_protocol_v6.git#subdirectory=bindings/python
-```
-**Usage:**
-```python
-from sibna import SecureContext, Config
-ctx = SecureContext(Config(), password=b"master_key")
-ciphertext = ctx.encrypt_message("peer_id", b"Hello Securely")
-```
-
-### 💙 Flutter / Dart SDK
-**Installation (pubspec.yaml):**
-```yaml
-dependencies:
-  sibna_dart:
-    git:
-      url: https://github.com/F2fX4553/sibna_protocol_v6.git
-      path: sibna-dart
-```
-**Usage:**
-```dart
-import 'package:sibna_dart/sibna_dart.dart';
-final ctx = SecureContext(Config(), password: "master_key");
-final encrypted = await ctx.encrypt("peer_id", "Hello Flutter");
-```
-
-### ⚡ JavaScript / Web (TS)
-**Installation:**
-```bash
-npm install https://github.com/F2fX4553/sibna_protocol_v6.git#sibna-js
-```
-**Usage:**
-```javascript
-import { SecureContext } from 'sibna-js';
-const ctx = new SecureContext({ password: 'master_key' });
-const ciphertext = await ctx.encrypt('peer_id', 'Hello Web');
-```
-
-### ⚙️ C++ (CMake)
-**Integration:**
-```cmake
-FetchContent_Declare(sibna GIT_REPOSITORY ... GIT_TAG v6.1.0)
-FetchContent_MakeAvailable(sibna)
-```
-**Usage:**
-```cpp
-#include <sibna/sibna.hpp>
-auto ctx = sibna::SecureContext(config, "master_key");
-auto data = ctx.encrypt_message("peer_id", "Hello C++");
-```
+### Available SDKs
+- **Python**: `pip install bindings/python`
+- **Flutter/Dart**: Add `sibna-dart` via Git in `pubspec.yaml`.
+- **JavaScript/Web**: `npm install sibna-js`
+- **C++**: Integrate using CMake `FetchContent`.
 
 ---
 
-## 🛠️ Building & Extending the SDK
+## 🏗️ SDK Engineering: Adding New Languages
 
-Want to add support for a new language? Sibna uses a layered architecture to make this seamless:
+Developers can create SDKs for any language that supports C-FFI. The process is standardized:
 
-### 1. The Kernel (Rust)
-The engine is located in `/core`. It exposes a **C-FFI** (Foreign Function Interface) which is the source of truth for all bindings.
-
-### 2. Generating Bindings
-We use `cbindgen` to generate C/C++ headers from the Rust source code:
-```bash
-cd core
-cbindgen --config cbindgen.toml --output sibna.h
-```
-
-### 3. Implementing a New SDK
-1.  **FFI Interaction**: Use your language's FFI library (e.g., `ctypes` in Python, `dart:ffi` in Dart).
-2.  **State Management**: Wrap the raw C pointers in safe, idiomatic objects.
-3.  **Security**: Ensure sensitive memory is Zeroized when the object is destroyed.
+### The "Source of Truth" Model
+1.  **Core Kernel**: All cryptographic logic lives in `/core`.
+2.  **C-Header Generation**: We use `cbindgen` to create the bridge between Rust and the world.
+    ```bash
+    cargo install cbindgen
+    cbindgen --config core/cbindgen.toml --output core/sibna.h
+    ```
+3.  **Language Binding**: Create a wrapper in your target language that calls the functions in `sibna.h`.
+    - **Per-Language**: You create a specific binding for each language (e.g., Python using PyO3, Dart using `dart:ffi`).
+    - **Uniformity**: Every SDK calls the same underlying Rust functions, ensuring identical security behavior across all platforms.
 
 ---
 
@@ -130,8 +90,8 @@ cbindgen --config cbindgen.toml --output sibna.h
 
 | Primitive | Implementation | Purpose |
 | :--- | :--- | :--- |
-| **Identity** | Ed25519 | Authentication |
 | **Key Agreement** | X25519 (Curve25519) | Diffie-Hellman |
+| **Authentication** | Ed25519 | Identity Signatures |
 | **Encryption** | ChaCha20-Poly1305 | AEAD Encryption |
 | **KDF** | BLAKE3 / HKDF-SHA256 | Key Derivation |
 
@@ -139,7 +99,7 @@ cbindgen --config cbindgen.toml --output sibna.h
 
 ## 📚 Resources
 
-- 📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🚀 **[Deployment](DEPLOYMENT.md)**
+📖 **[Whitepaper](docs/whitepaper.md)** | 🌐 **[Encyclopedia](web/encyclopedia.html)** | 🛠️ **[Dev Guide](DEVELOPER_GUIDE.md)**
 
 ---
 
